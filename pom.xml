@@ -83,6 +83,7 @@
     </dependencies>
 
     <build>
+        <finalName>CloudService</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

@@ -11,7 +11,7 @@ EXPOSE 8080
 
 ENV DEBUG false
 
-COPY target/${project.build.finalName}.jar /data/Service.jar
+COPY target/CloudService.jar /data/Service.jar
 
 WORKDIR /data
 
