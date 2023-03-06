@@ -2,7 +2,7 @@ FROM openjdk:17-alpine
 
 MAINTAINER GrexCraft
 
-COPY /src/main/docker/start-server.sh /usr/local/bin/
+COPY start-server.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/start-server.sh
 RUN mkdir -p /data
 
@@ -14,6 +14,6 @@ ENV DEBUG false
 
 WORKDIR /data
 
-COPY /target/CloudService.jar /data/Service.jar
+COPY target/CloudService.jar /data/Service.jar
 
 CMD ["start-server.sh"]
