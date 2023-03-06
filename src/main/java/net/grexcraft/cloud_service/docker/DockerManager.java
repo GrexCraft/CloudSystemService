@@ -7,6 +7,7 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
+import net.grexcraft.cloud_service.model.CreateServerRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import java.time.Duration;
 
@@ -30,9 +31,10 @@ public class DockerManager {
         dockerClient = DockerClientImpl.getInstance(config, httpClient);
     }
 
-    public String createServer(String image) {
+    public String createServer(CreateServerRequest request) {
 
         // with image like "dev_image:1.19.3"
+        String image = request.getImage() + ":" + request.getTag();
         String serverType = image.substring(0, image.indexOf('_'));
         String id = generateId();
         String serverName = serverType + "_" + id;
