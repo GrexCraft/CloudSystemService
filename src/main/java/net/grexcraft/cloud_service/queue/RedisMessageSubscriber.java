@@ -1,4 +1,4 @@
-package net.grexcraft.cloud_service.redis.queue;
+package net.grexcraft.cloud_service.queue;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;

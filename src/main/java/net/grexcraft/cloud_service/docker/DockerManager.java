@@ -10,7 +10,7 @@ import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import net.grexcraft.cloud_service.model.CreateServerRequest;
 import net.grexcraft.cloud_service.model.RedisBungeeEventData;
-import net.grexcraft.cloud_service.redis.queue.RedisMessagePublisher;
+import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Duration;

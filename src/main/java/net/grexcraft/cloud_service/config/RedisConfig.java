@@ -1,6 +1,9 @@
-package net.grexcraft.cloud_service.redis.config;
+package net.grexcraft.cloud_service.config;
 
 
+import net.grexcraft.cloud_service.queue.MessagePublisher;
+import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
+import net.grexcraft.cloud_service.queue.RedisMessageSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +15,6 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
-
-import net.grexcraft.cloud_service.redis.queue.*;
 
 @Configuration
 @ComponentScan("net.grexcraft.cloud_service")

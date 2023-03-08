@@ -2,7 +2,7 @@ package net.grexcraft.cloud_service.controller;
 
 import net.grexcraft.cloud_service.docker.DockerManager;
 import net.grexcraft.cloud_service.model.CreateServerRequest;
-import net.grexcraft.cloud_service.redis.queue.RedisMessagePublisher;
+import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
