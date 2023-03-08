@@ -18,11 +18,13 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 
 @Configuration
 @ComponentScan("net.grexcraft.cloud_service")
+//@ComponentScan
 @EnableRedisRepositories(basePackages = "net.grexcraft.cloud_service.repository")
 @PropertySource("classpath:application.properties")
 public class RedisConfig {
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
+
         return new JedisConnectionFactory();
     }
 

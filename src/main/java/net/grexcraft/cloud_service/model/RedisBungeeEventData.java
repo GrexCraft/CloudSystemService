@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Data;
-import org.springframework.data.redis.core.RedisHash;
 
 import java.io.Serializable;
 
 
-@RedisHash("RedisBungeeEventData")
 @Data
 public class RedisBungeeEventData implements Serializable {
 
