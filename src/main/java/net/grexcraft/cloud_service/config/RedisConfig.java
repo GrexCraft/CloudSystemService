@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -17,6 +17,8 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
 import org.springframework.data.redis.serializer.GenericToStringSerializer;
+
+import java.time.Duration;
 
 @Configuration
 @ComponentScan("net.grexcraft.cloud_service")
@@ -26,9 +28,17 @@ import org.springframework.data.redis.serializer.GenericToStringSerializer;
 public class RedisConfig {
     @Bean
     JedisConnectionFactory jedisConnectionFactory() {
-        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration(System.getenv("GC_CLOUD_REDIS_HOST"), Integer.parseInt(System.getenv("GC_CLOUD_REDIS_PORT")));
-        //redisStandaloneConfiguration.setPassword(RedisPassword.of("yourRedisPasswordIfAny"));
-        return new JedisConnectionFactory(redisStandaloneConfiguration);
+        RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+        redisStandaloneConfiguration.setHostName(System.getenv("GC_CLOUD_REDIS_HOST"));
+        redisStandaloneConfiguration.setPort(Integer.parseInt(System.getenv("GC_CLOUD_REDIS_PORT")));
+        redisStandaloneConfiguration.setDatabase(0);
+        //redisStandaloneConfiguration.setPassword(RedisPassword.of("password"));
+
+        JedisClientConfiguration.JedisClientConfigurationBuilder jedisClientConfiguration = JedisClientConfiguration.builder();
+        jedisClientConfiguration.connectTimeout(Duration.ofSeconds(60));// 60s connection timeout
+
+        return new JedisConnectionFactory(redisStandaloneConfiguration,
+                jedisClientConfiguration.build());
     }
 
     @Bean
