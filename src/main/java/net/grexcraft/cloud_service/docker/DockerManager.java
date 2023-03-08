@@ -73,6 +73,15 @@ public class DockerManager {
         return serverName;
     }
 
+    public void test() {
+        RedisBungeeEventData data = new RedisBungeeEventData();
+        data.setName("serverName");
+        data.setHostname("serverHostName");
+        data.setEventType(RedisBungeeEventData.BungeeEventType.REGISTER);
+
+        messagePublisher.publish(data.toJson());
+    }
+
     private static String generateId() {
         String generatedString = RandomStringUtils.randomAlphanumeric(10);
         generatedString = generatedString.toLowerCase();

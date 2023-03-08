@@ -24,4 +24,9 @@ public class ServerController {
     public String createServer(@RequestBody CreateServerRequest image) {
         return dockerManager.createServer(image);
     }
+
+    @PostMapping("test")
+    public void test() {
+        dockerManager.test();
+    }
 }
