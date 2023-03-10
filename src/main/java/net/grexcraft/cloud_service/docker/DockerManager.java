@@ -1,26 +1,34 @@
 package net.grexcraft.cloud_service.docker;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.Volume;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
 import net.grexcraft.cloud_service.model.CreateServerRequest;
+import net.grexcraft.cloud_service.model.Image;
+import net.grexcraft.cloud_service.model.ImageMount;
 import net.grexcraft.cloud_service.model.RedisBungeeEventData;
 import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
+import net.grexcraft.cloud_service.service.ImageService;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DockerManager {
 
     private final DockerClient dockerClient;
     private final RedisMessagePublisher messagePublisher;
+    private final ImageService imageService;
 
-    public DockerManager(RedisMessagePublisher messagePublisher) {
+    public DockerManager(RedisMessagePublisher messagePublisher, ImageService imageService) {
 
         this.messagePublisher = messagePublisher;
 
@@ -37,13 +45,18 @@ public class DockerManager {
                 .build();
 
         dockerClient = DockerClientImpl.getInstance(config, httpClient);
+
+        this.imageService = imageService;
     }
 
     public String createServer(CreateServerRequest request) {
 
         // with image like "dev_image:1.19.3"
 
-        String image = request.getImage() + ":" + request.getTag();
+        Image im = imageService.getImage(request.getImage(), request.getTag());
+
+
+        String image = im.getName() + ":" + im.getTag();
         String serverType = image.substring(0, image.indexOf('_'));
 
         String id = generateId();
@@ -51,11 +64,23 @@ public class DockerManager {
         String serverHostName = serverType + "-" + id;
 
         System.out.println("Creating server with name: '" + serverName + "' and hostname: '" + serverHostName + "' from image: '" + image + "'");
-        CreateContainerResponse container = dockerClient.createContainerCmd(image)
+        CreateContainerCmd cmd = dockerClient.createContainerCmd(image)
                 .withHostName(serverHostName)
                 .withName(serverName)
                 .withHostConfig(HostConfig.newHostConfig()
-                        .withNetworkMode("productive_data"))
+                        .withNetworkMode("productive_data"));
+
+        List<Volume> binds = new ArrayList<>();
+        for (ImageMount mount : im.getMounts()) {
+
+            binds.add(new Volume(mount.getPathLocal() + ":" + mount.getPathContainer()));
+        }
+
+        cmd.withVolumes(binds);
+
+        System.out.println("Using binds: " + binds);
+
+        CreateContainerResponse container = cmd
                 .exec();
 
         String containerId = container.getId();
