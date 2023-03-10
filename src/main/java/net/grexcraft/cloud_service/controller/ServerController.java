@@ -40,6 +40,7 @@ public class ServerController extends BaseController<Server, Long, ServerDto, Se
 
     @PostMapping("modify")
     public void modifyServer(@RequestBody ModifyServerRequest request) {
+        System.out.println(request);
         dockerManager.modifyServer(request.getServerName(), request.getState());
     }
 
