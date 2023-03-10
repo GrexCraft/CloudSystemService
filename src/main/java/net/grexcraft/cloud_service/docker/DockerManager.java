@@ -9,12 +9,12 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import net.grexcraft.cloud_service.model.CreateServerRequest;
+import net.grexcraft.cloud_service.enums.ServerState;
+import net.grexcraft.cloud_service.model.*;
 import net.grexcraft.cloud_service.model.Image;
-import net.grexcraft.cloud_service.model.ImageMount;
-import net.grexcraft.cloud_service.model.RedisBungeeEventData;
 import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
 import net.grexcraft.cloud_service.service.ImageService;
+import net.grexcraft.cloud_service.service.ServerService;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.time.Duration;
@@ -26,10 +26,12 @@ public class DockerManager {
     private final DockerClient dockerClient;
     private final RedisMessagePublisher messagePublisher;
     private final ImageService imageService;
+    private final ServerService serverService;
 
-    public DockerManager(RedisMessagePublisher messagePublisher, ImageService imageService) {
+    public DockerManager(RedisMessagePublisher messagePublisher, ImageService imageService, ServerService serverService) {
 
         this.messagePublisher = messagePublisher;
+        this.serverService = serverService;
 
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost("unix:///var/run/docker.sock")
@@ -65,7 +67,8 @@ public class DockerManager {
         System.out.println("Creating server with name: '" + serverName + "' and hostname: '" + serverHostName + "' from image: '" + image + "'");
         CreateContainerCmd cmd = dockerClient.createContainerCmd(image)
                 .withHostName(serverHostName)
-                .withName(serverName);
+                .withName(serverName)
+                .withEnv("GC_SERVER_NAME=" + serverName);
 
         List<Volume> volumes = new ArrayList<>();
         List<Bind> binds = new ArrayList<>();
@@ -90,16 +93,43 @@ public class DockerManager {
         String containerId = container.getId();
         dockerClient.startContainerCmd(containerId).exec();
 
+
+
         System.out.println("Created container with id: " + containerId);
 
-        RedisBungeeEventData data = new RedisBungeeEventData();
-        data.setName(serverName);
-        data.setHostname(serverHostName);
-        data.setEventType(RedisBungeeEventData.BungeeEventType.REGISTER);
-
-        messagePublisher.publish(data.toJson());
+        Server server = new Server(null, im, serverName, serverHostName, ServerState.STARTING);
+        serverService.save(server);
 
         return serverName;
+    }
+
+    public void modifyServer(String serverName, ServerState state) {
+        Server server = serverService.getServerByName(serverName);
+        server.setState(state);
+        server = serverService.save(server);
+
+        if (state != ServerState.STOPPED && state != ServerState.RUNNING) {
+            return;
+        }
+
+        RedisBungeeEventData.BungeeEventType eventType;
+
+        if (state == ServerState.STOPPED) {
+            eventType = RedisBungeeEventData.BungeeEventType.REMOVE;
+        } else {
+            eventType = RedisBungeeEventData.BungeeEventType.REGISTER;
+        }
+        modifyBungee(server, eventType);
+    }
+
+
+    public void modifyBungee(Server server, RedisBungeeEventData.BungeeEventType eventType) {
+        RedisBungeeEventData data = new RedisBungeeEventData();
+        data.setName(server.getName());
+        data.setHostname(server.getAddress());
+        data.setEventType(eventType);
+
+        messagePublisher.publish(data.toJson());
     }
 
     public void test() {
