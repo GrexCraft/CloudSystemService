@@ -3,8 +3,7 @@ package net.grexcraft.cloud_service.docker;
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.model.HostConfig;
-import com.github.dockerjava.api.model.Volume;
+import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
@@ -66,17 +65,22 @@ public class DockerManager {
         System.out.println("Creating server with name: '" + serverName + "' and hostname: '" + serverHostName + "' from image: '" + image + "'");
         CreateContainerCmd cmd = dockerClient.createContainerCmd(image)
                 .withHostName(serverHostName)
-                .withName(serverName)
-                .withHostConfig(HostConfig.newHostConfig()
-                        .withNetworkMode("productive_data"));
+                .withName(serverName);
 
-        List<Volume> binds = new ArrayList<>();
+        List<Volume> volumes = new ArrayList<>();
+        List<Bind> binds = new ArrayList<>();
         for (ImageMount mount : im.getMounts()) {
-
-            binds.add(new Volume(mount.getPathLocal() + ":" + mount.getPathContainer()));
+            Volume v = new Volume(mount.getPathContainer());
+            volumes.add(v);
+            binds.add(new Bind(mount.getPathLocal(), v));
         }
 
-        cmd.withVolumes(binds);
+
+        cmd.withVolumes(volumes)
+                .withHostConfig(HostConfig.newHostConfig()
+                        .withBinds(binds)
+                        .withNetworkMode("productive_data")
+                );
 
         System.out.println("Using binds: " + binds);
 

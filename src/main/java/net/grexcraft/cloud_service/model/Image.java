@@ -38,7 +38,7 @@ public class Image implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Image image = (Image) o;
-        return name.equals(image.name) && tag.equals(image.tag);
+        return name.equals(image.name) && tag.equals(image.tag) && id.equals(image.id);
     }
 
     @Override
