@@ -1,15 +1,13 @@
 package net.grexcraft.cloud_service.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import net.grexcraft.cloud_service.dto.PoolDto;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
+@Data
 public class CreateServerRequest {
     String image;
     String tag;
+    PoolDto pool;
 }

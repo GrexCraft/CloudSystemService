@@ -9,29 +9,19 @@ import com.github.dockerjava.core.DockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
 import com.github.dockerjava.transport.DockerHttpClient;
-import net.grexcraft.cloud_service.enums.ServerState;
 import net.grexcraft.cloud_service.model.*;
-import net.grexcraft.cloud_service.model.Image;
-import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
-import net.grexcraft.cloud_service.service.ImageService;
-import net.grexcraft.cloud_service.service.ServerService;
-import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+@Service
 public class DockerManager {
 
     private final DockerClient dockerClient;
-    private final RedisMessagePublisher messagePublisher;
-    private final ImageService imageService;
-    private final ServerService serverService;
 
-    public DockerManager(RedisMessagePublisher messagePublisher, ImageService imageService, ServerService serverService) {
-
-        this.messagePublisher = messagePublisher;
-        this.serverService = serverService;
+    public DockerManager() {
 
         DockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
                 .withDockerHost("unix:///var/run/docker.sock")
@@ -46,33 +36,19 @@ public class DockerManager {
                 .build();
 
         dockerClient = DockerClientImpl.getInstance(config, httpClient);
-
-        this.imageService = imageService;
     }
 
-    public String createServer(CreateServerRequest request) {
-
-        // with image like "dev_image:1.19.3"
-
-        Image im = imageService.getImage(request.getImage(), request.getTag());
-
-
-        String image = im.getName() + ":" + im.getTag();
-        String serverType = image.substring(0, image.indexOf('_'));
-
-        String id = generateId();
-        String serverName = serverType + "_" + id;
-        String serverHostName = serverType + "-" + id;
-
-        System.out.println("Creating server with name: '" + serverName + "' and hostname: '" + serverHostName + "' from image: '" + image + "'");
+    public boolean createContainer(Server server) {
+        String image = server.getImage().getName() + ":" + server.getImage().getTag();
+        System.out.println("Creating server with name: '" + server.getName() + "' and hostname: '" + server.getAddress() + "' from image: '" + image + "'");
         CreateContainerCmd cmd = dockerClient.createContainerCmd(image)
-                .withHostName(serverHostName)
-                .withName(serverName)
-                .withEnv("GC_SERVER_NAME=" + serverName);
+                .withHostName(server.getAddress())
+                .withName(server.getName())
+                .withEnv("GC_SERVER_NAME=" + server.getName());
 
         List<Volume> volumes = new ArrayList<>();
         List<Bind> binds = new ArrayList<>();
-        for (ImageMount mount : im.getMounts()) {
+        for (ImageMount mount : server.getImage().getMounts()) {
             Volume v = new Volume(mount.getPathContainer());
             volumes.add(v);
             binds.add(new Bind(mount.getPathLocal(), v));
@@ -91,59 +67,15 @@ public class DockerManager {
                 .exec();
 
         String containerId = container.getId();
+
+        if (containerId == null) return false;
+
         dockerClient.startContainerCmd(containerId).exec();
-
-
 
         System.out.println("Created container with id: " + containerId);
 
-        Server server = new Server(null, im, serverName, serverHostName, ServerState.STARTING);
-        serverService.save(server);
+        return true;
 
-        return serverName;
     }
 
-    public void modifyServer(String serverName, ServerState state) {
-        Server server = serverService.getServerByName(serverName);
-        server.setState(state);
-        server = serverService.save(server);
-
-        if (state != ServerState.STOPPED && state != ServerState.RUNNING) {
-            return;
-        }
-
-        RedisBungeeEventData.BungeeEventType eventType;
-
-        if (state == ServerState.STOPPED) {
-            eventType = RedisBungeeEventData.BungeeEventType.REMOVE;
-        } else {
-            eventType = RedisBungeeEventData.BungeeEventType.REGISTER;
-        }
-        modifyBungee(server, eventType);
-    }
-
-
-    public void modifyBungee(Server server, RedisBungeeEventData.BungeeEventType eventType) {
-        RedisBungeeEventData data = new RedisBungeeEventData();
-        data.setName(server.getName());
-        data.setHostname(server.getAddress());
-        data.setEventType(eventType);
-
-        messagePublisher.publish(data.toJson());
-    }
-
-    public void test() {
-        RedisBungeeEventData data = new RedisBungeeEventData();
-        data.setName("serverName");
-        data.setHostname("serverHostName");
-        data.setEventType(RedisBungeeEventData.BungeeEventType.REGISTER);
-
-        messagePublisher.publish(data.toJson());
-    }
-
-    private static String generateId() {
-        String generatedString = RandomStringUtils.randomAlphanumeric(10);
-        generatedString = generatedString.toLowerCase();
-        return generatedString;
-    }
 }

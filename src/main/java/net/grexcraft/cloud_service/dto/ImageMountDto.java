@@ -11,4 +11,6 @@ public class ImageMountDto {
     Long id;
     String pathLocal;
     String pathContainer;
+    ImageDto image;
+
 }

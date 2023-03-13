@@ -27,8 +27,9 @@ public class Image implements Serializable {
     @Column(name = "tag")
     private String tag;
 
-    @Column(name = "pool_size")
-    private int poolSize;
+    @JoinColumn(name = "fk_pool_default_id")
+    @ManyToOne
+    private Pool defaultPool;
 
     @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "image")
     private Set<ImageMount> mounts;
@@ -43,6 +44,6 @@ public class Image implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, tag, poolSize);
+        return Objects.hash(id, name, tag);
     }
 }

@@ -1,11 +1,7 @@
 package net.grexcraft.cloud_service.mapper;
 
-import net.grexcraft.cloud_service.dto.ServerDto;
-import net.grexcraft.cloud_service.model.Image;
-import net.grexcraft.cloud_service.dto.ImageDto;
-import net.grexcraft.cloud_service.model.ImageMount;
-import net.grexcraft.cloud_service.dto.ImageMountDto;
-import net.grexcraft.cloud_service.model.Server;
+import net.grexcraft.cloud_service.dto.*;
+import net.grexcraft.cloud_service.model.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -21,5 +17,11 @@ public interface EntityMapper {
 
     ServerDto map(Server server);
     Server map(ServerDto serverDto);
+
+    PoolDto map(Pool pool);
+    Pool map(PoolDto poolDto);
+
+    PoolSlotDto map(PoolSlot poolSlot);
+    PoolSlot map(PoolSlotDto poolSlotDto);
 }
 

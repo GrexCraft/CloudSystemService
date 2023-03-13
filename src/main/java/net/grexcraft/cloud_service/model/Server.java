@@ -21,19 +21,27 @@ public class Server implements Serializable {
     @GenericGenerator(name = "native", strategy = "native")
     private Long id;
 
-    @JoinColumn(name = "fk_image_id")
+    @JoinColumn(nullable = false, name = "fk_image_id")
     @ManyToOne
     private Image image;
 
-    @Column(name = "name")
+    @Column(nullable = false, name = "name")
     private String name;
 
-    @Column(name = "address")
+    @Column(nullable = false, name = "address")
     private String address;
 
-    @Column(name = "state")
+    @Column(nullable = false, name = "state")
     @Enumerated(EnumType.STRING)
     private ServerState state;
+
+    @JoinColumn(name = "fk_pool_slot_id")
+    @ManyToOne
+    private PoolSlot poolSlot;
+
+    @JoinColumn(nullable = false, name = "fk_pool_id")
+    @ManyToOne
+    private Pool pool;
 
     @Override
     public boolean equals(Object o) {
