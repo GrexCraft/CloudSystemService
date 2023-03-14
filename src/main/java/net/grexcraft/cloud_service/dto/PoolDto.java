@@ -14,7 +14,7 @@ public class PoolDto {
     private String name;
     private int max;
     private int min;
-    private ImageDto defaultImage;
+    //private ImageDto defaultImage;
     private Set<PoolSlotDto> slots;
     private int fallback;
 }
