@@ -8,6 +8,8 @@ import net.grexcraft.cloud_service.queue.RedisMessagePublisher;
 import net.grexcraft.cloud_service.repository.ServerRepository;
 import net.grexcraft.cloud_service.rest.base.BaseService;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,18 +24,22 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
     private final RedisMessagePublisher messagePublisher;
     private final ImageService imageService;
     private final PoolService poolService;
+    private final PoolSlotService poolSlotService;
     private final DockerManager dockerManager;
+
+    Logger logger = LoggerFactory.getLogger(ServerService.class);
 
 
     private final RedisBungeeEventData.BungeeEventType REMOVE = RedisBungeeEventData.BungeeEventType.REMOVE;
     private final RedisBungeeEventData.BungeeEventType REGISTER = RedisBungeeEventData.BungeeEventType.REGISTER;
 
     @Autowired
-    public ServerService(ServerRepository repository, RedisMessagePublisher messagePublisher, ImageService imageService, PoolService poolService, DockerManager dockerManager) {
+    public ServerService(ServerRepository repository, RedisMessagePublisher messagePublisher, ImageService imageService, PoolService poolService, PoolSlotService poolSlotService, DockerManager dockerManager) {
         super(repository);
         this.messagePublisher = messagePublisher;
         this.imageService = imageService;
         this.poolService = poolService;
+        this.poolSlotService = poolSlotService;
         this.dockerManager = dockerManager;
     }
 
@@ -43,6 +49,10 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
 
     public Server getServerByName(String name) {
         return getRepository().findServerByName(name);
+    }
+
+    public Collection<Server> getServerInPool(Pool pool) {
+        return getRepository().findServersByPool(pool);
     }
 
 
@@ -102,26 +112,84 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
         if (state == ServerState.STOPPED) {
             modifyBungee(server, REMOVE);
 
-            // TODO: remove server from pool and pool_slot
+            PoolSlot slot = server.getPoolSlot();
+            Pool pool = server.getPool();
 
-            // TODO start new Server, if Pool min is reached
+            // remove server from pool
+            server.setPoolSlot(null);
+            server.setPool(null);
+            save(server);
+            pool = poolService.getById(pool.getId());
 
-            // TODO remove server from pool_slot and transmit to bungee
+            // start new Server, if Pool min is reached
+            if (pool.getServers().size() < pool.getMin()) {
+                createServer(
+                        new CreateServerRequest(
+                                server.getImage().getName(),
+                                server.getImage().getTag(),
+                                pool));
+            }
 
-            // TODO if unassigned servers in pool, assign them to freed slot and transmit to bungee
+
+            if (slot != null) {
+                // remove server from slot
+                slot.setServer(null);
+                poolSlotService.save(slot);
+
+                // unregister slot in bungee
+                modifyBungee(slot.getName(), "", REMOVE);
+
+                // if unassigned servers in pool, assign them to freed slot and transmit to bungee
+                for (Server srv : getServerInPool(pool)) {
+                    if (srv.getPoolSlot() == null) {
+                        addServerToSlot(srv, slot);
+                        break;
+                    }
+                }
+
+            }
+
 
         } else {
             modifyBungee(server, REGISTER);
 
-            // TODO if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
+            // if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
+            boolean found = false;
+            for (PoolSlot slot : server.getPool().getSlots()) {
+                if (slot.getServer() == null) {
+                    addServerToSlot(server, slot);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                logger.warn("no free server pool slot found in servers pool");
+            }
         }
+    }
+
+    private void addServerToSlot(Server server, PoolSlot slot) {
+        slot.setServer(server);
+        server.setPoolSlot(slot);
+
+        save(server);
+        poolSlotService.save(slot);
+
+        logger.info("added server '" + server.getName() + "' to pool slot '" + slot.getName() + "'");
+
+        modifyBungee(slot.getName(), server.getAddress(), REGISTER);
     }
 
 
     private void modifyBungee(Server server, RedisBungeeEventData.BungeeEventType eventType) {
+        modifyBungee(server.getName(), server.getAddress(), eventType);
+    }
+
+    private void modifyBungee(String name, String address, RedisBungeeEventData.BungeeEventType eventType) {
         RedisBungeeEventData data = new RedisBungeeEventData();
-        data.setName(server.getName());
-        data.setHostname(server.getAddress());
+        data.setName(name);
+        data.setHostname(address);
         data.setEventType(eventType);
 
         messagePublisher.publish(data.toJson());

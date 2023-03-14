@@ -23,4 +23,7 @@ public class PoolSlot {
     @JoinColumn(nullable = false, name = "fk_pool_id")
     @ManyToOne
     private Pool pool;
+
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "poolSlot")
+    private Server server;
 }

@@ -36,10 +36,10 @@ public class Server implements Serializable {
     private ServerState state;
 
     @JoinColumn(name = "fk_pool_slot_id")
-    @ManyToOne
+    @OneToOne
     private PoolSlot poolSlot;
 
-    @JoinColumn(nullable = false, name = "fk_pool_id")
+    @JoinColumn(name = "fk_pool_id")
     @ManyToOne
     private Pool pool;
 

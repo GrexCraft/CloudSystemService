@@ -36,6 +36,9 @@ public class Pool implements Serializable {
     @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "pool")
     private Set<PoolSlot> slots;
 
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, mappedBy = "pool")
+    private Set<Server> servers;
+
     @Column(name = "fallback")
     private int fallback;
 }

@@ -1,5 +1,6 @@
 package net.grexcraft.cloud_service.repository;
 
+import net.grexcraft.cloud_service.model.Pool;
 import net.grexcraft.cloud_service.model.Server;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -11,4 +12,5 @@ public interface ServerRepository extends JpaRepository<Server, Long> {
 
     List<Server> findAll();
     Server findServerByName(String name);
+    List<Server> findServersByPool(Pool pool);
 }
