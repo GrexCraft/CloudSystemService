@@ -78,7 +78,10 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
             pool = poolService.getById(request.getPool().getId());
         }
 
-        // TODO check if max pool size is already reached
+        if (pool.getServers().size() >= pool.getMax()) {
+            logger.warn("unable to start server '" + serverName + "' because pool is already maxed");
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE);
+        }
 
         Server server = new Server(
                 null,
