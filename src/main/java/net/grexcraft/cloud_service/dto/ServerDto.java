@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import net.grexcraft.cloud_service.enums.ServerState;
-import net.grexcraft.cloud_service.model.Pool;
-import net.grexcraft.cloud_service.model.PoolSlot;
 
 @Data
 @AllArgsConstructor
@@ -16,6 +14,6 @@ public class ServerDto {
     private String name;
     private String address;
     private ServerState state;
-    private PoolSlot poolSlot;
-    private Pool pool;
+    private PoolSlotDto poolSlot;
+    private PoolDto pool;
 }

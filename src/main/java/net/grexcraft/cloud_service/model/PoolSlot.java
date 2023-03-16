@@ -13,7 +13,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "plot_slot")
+@Table(name = "pool_slot")
 public class PoolSlot implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "native")
