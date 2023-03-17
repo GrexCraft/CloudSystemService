@@ -2,12 +2,21 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub GrexCraft Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/GrexCraft/CloudSystemService</url>
+        </repository>
+    </distributionManagement>
+
     <parent>
         <artifactId>cloud-parent</artifactId>
         <groupId>net.grexcraft</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>cloud-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
