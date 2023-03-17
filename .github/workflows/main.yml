@@ -30,6 +30,13 @@ jobs:
     - name: Build with Maven
       run: mvn -B package --file pom.xml
       
+    
+    - name: Publish to GitHub Packages Apache Maven
+      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+      
     # Install the cosign tool except on PR
     # https://github.com/sigstore/cosign-installer
     - name: Install cosign
@@ -84,8 +91,3 @@ jobs:
     #  # against the sigstore community Fulcio instance.
     #  run: cosign sign ${{ steps.meta.outputs.tags }}@${{ steps.build-and-push.outputs.digest }}
     
-    - name: Publish to GitHub Packages Apache Maven
-      run: mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
