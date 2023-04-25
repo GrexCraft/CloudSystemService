@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Collection;
 
 @RestController
-@RequestMapping("/api/v1/pool/slot/")
+@RequestMapping("/api/v1/slot/")
 public class PoolSlotController extends BaseController<PoolSlot, Long, PoolSlotDto, PoolSlotService> {
     public PoolSlotController(PoolSlotService service) {
         super(service);
