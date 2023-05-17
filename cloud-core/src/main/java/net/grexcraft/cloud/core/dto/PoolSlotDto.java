@@ -12,5 +12,4 @@ public class PoolSlotDto {
     private String name;
     private PoolDto pool;
     private ServerDto server;
-
 }

@@ -14,6 +14,4 @@ public class ServerDto {
     private String name;
     private String address;
     private ServerState state;
-    private PoolSlotDto poolSlot;
-    private PoolDto pool;
 }

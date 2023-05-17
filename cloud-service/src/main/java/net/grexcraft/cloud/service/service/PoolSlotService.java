@@ -21,4 +21,8 @@ public class PoolSlotService extends BaseService<PoolSlot, Long, PoolSlotReposit
     public Collection<PoolSlot> getPoolSlots() {
         return getRepository().findAll();
     }
+
+    public PoolSlot getPoolSlotByName(String name) {
+        return getRepository().findPoolSlotByName(name);
+    }
 }

@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface PoolSlotRepository extends JpaRepository<PoolSlot, Long> {
     List<PoolSlot> findAll();
+    PoolSlot findPoolSlotByName(String name);
 }
