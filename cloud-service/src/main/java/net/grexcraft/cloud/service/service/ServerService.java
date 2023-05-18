@@ -101,6 +101,14 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
             save(serverSaved);
         }
 
+        // if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
+        for (PoolSlot slot : serverSaved.getPool().getSlots()) {
+            if (slot.getServer() == null) {
+                addServerToSlot(server, slot);
+                break;
+            }
+        }
+
         return serverName;
     }
 
@@ -159,18 +167,26 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
         } else {
             modifyBungee(server, REGISTER);
 
-            // if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
             boolean found = false;
-            for (PoolSlot slot : server.getPool().getSlots()) {
-                if (slot.getServer() == null) {
-                    addServerToSlot(server, slot);
-                    found = true;
-                    break;
+
+            if (server.getPoolSlot() != null) {
+                // server already in pool slot
+                logger.info("server " + server.getName() + " already assigned to pool, no need to add");
+            } else {
+                // if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
+                for (PoolSlot slot : server.getPool().getSlots()) {
+                    if (slot.getServer() == null) {
+                        addServerToSlot(server, slot);
+                        found = true;
+                        break;
+                    }
                 }
             }
 
             if (!found) {
                 logger.warn("no free server pool slot found in servers pool");
+            } else {
+                modifyBungee(server.getPoolSlot().getName(), server.getAddress(), REGISTER);
             }
         }
     }
@@ -183,8 +199,6 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
         poolSlotService.save(slot);
 
         logger.info("added server '" + server.getName() + "' to pool slot '" + slot.getName() + "'");
-
-        modifyBungee(slot.getName(), server.getAddress(), REGISTER);
     }
 
 
