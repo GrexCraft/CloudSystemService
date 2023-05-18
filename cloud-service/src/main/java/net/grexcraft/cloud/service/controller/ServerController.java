@@ -25,6 +25,11 @@ public class ServerController extends BaseController<Server, Long, ServerDto, Se
         return getService().createServer(image);
     }
 
+    @PostMapping("create/slot")
+    public String createServerForSlot(@RequestBody CreateServerRequest image) {
+        return getService().createServer(image);
+    }
+
     @PostMapping("modify")
     public void modifyServer(@RequestBody ModifyServerRequest request) {
         System.out.println(request);

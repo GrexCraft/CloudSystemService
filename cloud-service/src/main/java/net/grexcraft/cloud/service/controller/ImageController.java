@@ -8,6 +8,7 @@ import net.grexcraft.cloud.service.rest.base.BaseController;
 import net.grexcraft.cloud.service.service.ImageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +22,11 @@ public class ImageController extends BaseController<Image, Long, ImageDto, Image
     @Autowired
     public ImageController(ImageService imageService) {
         super(imageService);
+    }
+
+    @GetMapping("pool/{name}/")
+    public ImageDto getImageForPool(@PathVariable String name) {
+        return mapToDto(getService().getImageByDefaultPool(name));
     }
 
     @Override
