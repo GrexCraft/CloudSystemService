@@ -157,7 +157,7 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
                 for (Server srv : getServerInPool(pool)) {
                     if (srv.getPoolSlot() == null) {
                         addServerToSlot(srv, slot);
-                        modifyBungee(slot.getName(), server.getAddress(), REGISTER);
+                        modifyBungee(slot.getName(), srv.getAddress(), REGISTER);
                         break;
                     }
                 }
