@@ -172,6 +172,7 @@ public class ServerService extends BaseService<Server, Long, ServerRepository> {
             if (server.getPoolSlot() != null) {
                 // server already in pool slot
                 logger.info("server " + server.getName() + " already assigned to pool, no need to add");
+                found = true;
             } else {
                 // if possible, assign server to pool_slot and transmit to bungee, if not leave slot empty
                 for (PoolSlot slot : server.getPool().getSlots()) {
